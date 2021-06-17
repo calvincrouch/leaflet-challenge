@@ -1,12 +1,9 @@
-// Define earthquakes and tectonic plates GeoJSON url variables
 var earthquakesURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 var tectonicplatesURL = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json"
 
-// Create two layerGroups
 var earthquakes = L.layerGroup();
 var tectonicplates = L.layerGroup();
 
-// Define tile layers
 var satelliteMap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
   attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
   maxZoom: 18,
@@ -39,7 +36,6 @@ var darkMap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z
   accessToken: API_KEY
 });
 
-// Define a baseMaps object to hold the base layers
 var baseMaps = {
   "Satellite Map": satelliteMap,
   "Grayscale Map": grayscaleMap,
@@ -47,13 +43,12 @@ var baseMaps = {
   "Dark Map": darkMap
 };
 
-// Create overlay object to hold the overlay layer
 var overlayMaps = {
   "Earthquakes": earthquakes,
   "Tectonic Plates": tectonicplates
 };
 
-// Create the map, giving it the satelliteMap and earthquakes layers to display on load
+// Create the map
 var myMap = L.map("mapid", {
   center: [
     37.09, -95.71
@@ -62,19 +57,17 @@ var myMap = L.map("mapid", {
   layers: [satelliteMap, earthquakes]
 });
 
-// Create a layer control
-// Pass in the baseMaps and overlayMaps
-// Add the layer control to the map
+
 L.control.layers(baseMaps, overlayMaps, {
   collapsed: false
 }).addTo(myMap);
 
 d3.json(earthquakesURL, function(earthquakeData) {
-  // Determine the marker size by magnitude
+  // marker size
   function markerSize(magnitude) {
     return magnitude * 4;
   };
-  // Determine the marker color by depth
+  // color
   function chooseColor(depth) {
     switch(true) {
       case depth > 90:
@@ -92,12 +85,10 @@ d3.json(earthquakesURL, function(earthquakeData) {
     }
   }
 
-  // Create a GeoJSON layer containing the features array
-  // Each feature a popup describing the place and time of the earthquake
+
   L.geoJSON(earthquakeData, {
     pointToLayer: function (feature, latlng) {
       return L.circleMarker(latlng, 
-        // Set the style of the markers based on properties.mag
         {
           radius: markerSize(feature.properties.mag),
           fillColor: chooseColor(feature.geometry.coordinates[2]),
@@ -113,7 +104,6 @@ d3.json(earthquakesURL, function(earthquakeData) {
       + new Date(feature.properties.time) + "</p><hr><p>Magnitude: " + feature.properties.mag + "</p>");
     }
   }).addTo(earthquakes);
-  // Sending our earthquakes layer to the createMap function
   earthquakes.addTo(myMap);
 
   // Get the tectonic plate data from tectonicplatesURL
@@ -125,7 +115,6 @@ d3.json(earthquakesURL, function(earthquakeData) {
     tectonicplates.addTo(myMap);
   });
 
-    // Add legend
     var legend = L.control({position: "bottomright"});
     legend.onAdd = function() {
       var div = L.DomUtil.create("div", "info legend"),
